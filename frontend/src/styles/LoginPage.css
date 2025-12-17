@@ -1,0 +1,31 @@
+/* 登录页面容器样式 */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f2f5;
+}
+
+/* 登录卡片样式 */
+.login-card {
+  width: 400px;
+}
+
+/* 卡片标题居中 */
+.login-card .ant-card-head-title {
+  text-align: center;
+}
+
+/* 忘记密码链接样式 */
+.forgot-password-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+/* 注册提示样式 */
+.register-prompt-container {
+  text-align: center;
+  margin-top: 16px;
+}

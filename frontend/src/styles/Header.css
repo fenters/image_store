@@ -1,0 +1,198 @@
+/* Header组件样式 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  background-color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 64px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 18px;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* 确保header内的h3元素没有底部margin */
+.header h3 {
+  margin-bottom: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-welcome {
+  font-size: 14px;
+  color: #ffffff;
+  margin-right: 8px;
+}
+
+.header-link {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffffff;
+}
+
+.header-logout {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffffff;
+}
+
+/* 确保Header组件的样式被正确应用 */
+.ant-layout-header.header {
+  padding: 0 24px;
+  background-color: #000000;
+  margin: 0;
+  height: 64px;
+  line-height: 64px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 确保Header内部元素的间距正确 */
+.header-right > * {
+  margin-left: 8px;
+}
+
+.header-right > *:first-child {
+  margin-left: 0;
+}
+
+/* 修复Ant Design默认样式覆盖问题 */
+.header .ant-btn-link {
+  color: #ffffff !important;
+}
+
+.header .header-link-home {
+  color: #ffffff !important;
+}
+
+.header .header-link-tokens {
+  color: #52c41a !important;
+}
+
+.header .header-link-api {
+  color: #1890ff !important;
+}
+
+.header .header-logout {
+  color: #ff4d4f !important;
+}
+
+.header .header-link:hover,
+.header .header-link:focus {
+  opacity: 0.8 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.header .header-logout:hover,
+.header .header-logout:focus {
+  color: #ff7875 !important;
+  border-color: rgba(255, 77, 79, 0.3) !important;
+}
+
+/* 确保Link组件本身没有默认颜色 */
+.header .ant-btn-link .anticon,
+.header .ant-btn-text .anticon {
+  color: inherit !important;
+}
+
+/* 确保标题颜色正确 */
+.header .ant-typography.header-title {
+  color: #ffffff !important;
+}
+
+/* 确保欢迎文本颜色正确 */
+.header .ant-typography.header-welcome {
+  color: #ffffff !important;
+}
+
+/* 确保文本不换行 */
+.header * {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 确保按钮内部文本不换行 */
+.header .ant-btn span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 确保图标和文本对齐 */
+.header .ant-btn-icon {
+  margin-right: 4px;
+}
+
+/* 调整响应式布局 */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 12px;
+  }
+  
+  .header-right {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  
+  .header-welcome {
+    display: none;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header-right {
+    gap: 4px;
+  }
+  
+  .header-right .ant-btn span:not(.ant-btn-icon) {
+    display: none;
+  }
+  
+  .header-right .ant-btn {
+    padding: 2px;
+    min-width: auto;
+  }
+  
+  .header-title {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0 8px;
+  }
+  
+  .header-right .ant-btn {
+    padding: 0;
+  }
+  
+  .header-right .ant-btn-icon {
+    margin-right: 0;
+  }
+}

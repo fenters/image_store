@@ -1,0 +1,295 @@
+/* 主页面样式 */
+.upload-area {
+  margin-bottom: 20px;
+}
+
+.images-section-title {
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.images-container {
+  padding: 0 1rem;
+}
+
+.images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+/* 图片卡片样式 */
+.image-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.image-card.selected {
+  border: 2px solid #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.image-card-image-container {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  background-color: #f0f2f5;
+}
+
+.image-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.image-card:hover .image-card-image {
+  transform: scale(1.05);
+}
+
+.image-card-info {
+  padding: 12px;
+}
+
+.image-card-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+}
+
+.image-card-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 上传表格样式 */
+.upload-table-container {
+  margin-top: 20px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.upload-table-actions {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.table-image-preview {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* 结果模态框样式 */
+.result-modal-card {
+  margin-bottom: 16px;
+}
+
+.result-summary {
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.result-modal-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #999;
+  font-size: 12px;
+}
+
+.result-modal-code-container {
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.result-modal-code {
+  padding: 8px 12px;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  word-break: break-all;
+  overflow-x: auto;
+}
+
+.result-modal-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+/* 拖拽区域样式 */
+.layui-upload-drag {
+  width: 100%;
+  padding: 40px 20px;
+  text-align: center;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  background-color: #fafafa;
+}
+
+.layui-upload-drag:hover {
+  border-color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.04);
+}
+
+.layui-upload-drag .upload-icon {
+  font-size: 32px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.layui-upload-drag .layui-icon { /* 兼容旧版样式 */
+  font-size: 32px;
+  color: #999;
+  margin-bottom: 16px;
+}
+
+.layui-upload-drag input[type="file"] {
+  display: none;
+}
+
+/* 图片选择框样式 */
+.image-card-select {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.select-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d9d9d9;
+  border-radius: 4px;
+  background-color: white;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.select-checkbox:hover {
+  border-color: #1890ff;
+}
+
+.select-checkbox.selected {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: white;
+}
+
+.select-checkmark {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 已选择图片卡片样式 */
+.image-card-selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 右键菜单样式 */
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 150px;
+  padding: 4px 0;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.context-menu-item.delete {
+  color: #ff4d4f;
+}
+
+.context-menu-item.delete:hover {
+  background-color: #fff2f0;
+}
+
+/* 图片预览模态框样式 */
+.preview-modal-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.preview-modal-image {
+  max-width: 90%;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+/* 批量操作栏样式 */
+.batch-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.batch-actions-info {
+  font-size: 14px;
+  color: #666;
+}
+
+.batch-actions-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* 加载更多按钮居中 */
+.load-more-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}

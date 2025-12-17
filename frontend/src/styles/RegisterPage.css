@@ -1,0 +1,31 @@
+/* 注册页面布局样式 */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+}
+
+/* 注册卡片标题居中 */
+.register-card .ant-card-head-title {
+  text-align: center;
+}
+
+/* 登录提示样式 */
+.login-tip {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 14px;
+  color: #666;
+}
+
+.login-tip a {
+  color: #1890ff;
+  margin-left: 8px;
+  text-decoration: none;
+}
+
+.login-tip a:hover {
+  color: #40a9ff;
+}

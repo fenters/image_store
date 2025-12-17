@@ -1,0 +1,73 @@
+/* API文档页面样式 */
+.api-documentation-card {
+  margin-bottom: 20px;
+}
+
+.api-tabs {
+  margin-top: 20px;
+}
+
+.api-tabs .ant-tabs-tab {
+  font-weight: 500;
+}
+
+.api-tabs .ant-collapse {
+  margin-top: 10px;
+}
+
+.api-tabs .ant-collapse-header {
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.api-tabs .ant-collapse-content-box {
+  padding: 16px;
+}
+
+.api-tabs .ant-code {
+  background-color: #fafafa;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.api-tabs .ant-tag {
+  margin-right: 4px;
+}
+
+.api-tabs .ant-divider {
+  margin: 20px 0;
+}
+
+.api-tabs .ant-space {
+  width: 100%;
+}
+
+.api-tabs .ant-typography {
+  margin: 4px 0;
+}
+
+.api-tabs strong {
+  color: #333;
+}
+
+.api-tabs .ant-typography-code {
+  background-color: #f5f5f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .api-tabs .ant-collapse-header {
+    font-size: 14px;
+  }
+  
+  .api-tabs .ant-code {
+    font-size: 12px;
+  }
+}

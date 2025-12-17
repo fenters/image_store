@@ -1,0 +1,8 @@
+/* 引入全局样式 */
+@import './styles/global.css';
+
+/* 应用根容器 */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

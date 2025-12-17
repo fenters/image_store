@@ -1,0 +1,107 @@
+.code-container {
+  background-color: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 8px 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.language-tag {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+}
+
+.copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.copy-button:hover {
+  background-color: #e8e8e8;
+  color: #1890ff;
+}
+
+.code-content {
+  display: flex;
+  position: relative;
+}
+
+.line-numbers {
+  padding: 16px 8px;
+  background-color: #f5f5f5;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid #e8e8e8;
+  min-width: 50px;
+}
+
+.line-number {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #aaa;
+}
+
+.code-pre {
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+}
+
+.code-pre code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 适配暗色主题 */
+@media (prefers-color-scheme: dark) {
+  .code-container {
+    background-color: #1f1f1f;
+    border-color: #333;
+  }
+  
+  .code-header {
+    background-color: #2a2a2a;
+    border-bottom-color: #333;
+  }
+  
+  .language-tag {
+    color: #aaa;
+  }
+  
+  .copy-button {
+    color: #aaa;
+  }
+  
+  .copy-button:hover {
+    background-color: #333;
+  }
+  
+  .line-numbers {
+    background-color: #252525;
+    border-right-color: #333;
+  }
+  
+  .line-number {
+    color: #666;
+  }
+}

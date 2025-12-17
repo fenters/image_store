@@ -1,0 +1,88 @@
+/* 页面内容容器样式 */
+.page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 页面标题样式 */
+.page-title {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+/* 创建按钮样式 */
+.create-btn {
+  margin-bottom: 20px;
+}
+
+
+/* 模态框区域标题样式 */
+.modal-section-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  margin: 20px 0 15px 0;
+}
+
+/* Token信息样式 */
+.token-info {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* Token警告样式 */
+.token-warning {
+  color: #ff4d4f;
+  font-weight: bold;
+}
+
+/* Token显示容器样式 */
+.token-display-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Token显示样式 */
+.token-display {
+  background-color: #f6ffed;
+  padding: 15px;
+  border-radius: 4px;
+  border: 1px solid #b7eb8f;
+  margin: 15px 0;
+  font-family: monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+/* Token提示样式 */
+.token-tips {
+  padding: 12px;
+  background-color: #fff7e6;
+  border: 1px solid #ffe7ba;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #fa8c16;
+}
+
+.token-tips ul {
+  margin: 8px 0 0 20px;
+  padding: 0;
+}
+
+.token-tips li {
+  margin-bottom: 4px;
+}
+
+/* 表格复选框样式 */
+.table-checkbox {
+  cursor: pointer;
+}

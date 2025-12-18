@@ -14,6 +14,8 @@ Thumbs.db
 *.sln
 *.sw?
 
+.trae
+
 # 后端忽略项
 /backend/venv/
 /backend/__pycache__/

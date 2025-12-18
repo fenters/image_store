@@ -17,9 +17,8 @@ const LinkTokenPage: React.FC = () => {
   const [showTokenModal, setShowTokenModal] = useState(false);
   const [createdToken, setCreatedToken] = useState<string>('');
   const [createdTokenName, setCreatedTokenName] = useState<string>('');
-  const [newToken, setNewToken] = useState<TokenCreateRequest>({
-    name: '',
-  });
+  // 使用antd Form的useForm钩子管理表单
+  const [form] = Form.useForm<TokenCreateRequest>();
   // 多选框状态管理
   const [selectedKeys, setSelectedKeys] = useState<React.Key[]>([]);
   const [isAllSelected, setIsAllSelected] = useState(false);
@@ -99,10 +98,16 @@ const LinkTokenPage: React.FC = () => {
   }, []);
 
   // 创建LinkToken
-  const handleCreateToken = async () => {
+  const handleCreateToken = async (values: TokenCreateRequest) => {
     try {
+      // 添加空名称验证
+      if (!values.name || values.name.trim() === '') {
+        message.error('请输入LinkToken名称！');
+        return;
+      }
+      
       setIsLoading(true);
-      const response = await tokenApi.createToken(newToken);
+      const response = await tokenApi.createToken(values);
       if (response.data.code === 0) {
         // 仅在创建时获取并显示token
         const { token, name } = response.data.data;
@@ -112,7 +117,7 @@ const LinkTokenPage: React.FC = () => {
         setShowTokenModal(true);
         
         // 重置表单
-        setNewToken({name: ''});
+        form.resetFields();
         
         // 刷新列表（此时列表中不包含token值）
         fetchLinkTokens();
@@ -166,7 +171,11 @@ const LinkTokenPage: React.FC = () => {
           <div className="button-group">
             <Button
               type="primary"
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                // 打开创建模态框时重置表单
+                form.resetFields();
+                setShowCreateModal(true);
+              }}
               className="create-btn"
               icon={<PlusOutlined />}
             >
@@ -276,14 +285,18 @@ const LinkTokenPage: React.FC = () => {
           <Modal
             title="创建LinkToken"
             open={showCreateModal}
-            onCancel={() => setShowCreateModal(false)}
+            onCancel={() => {
+              setShowCreateModal(false);
+              // 点击取消按钮时重置表单
+              form.resetFields();
+            }}
             footer={null}
             width={600}
           >
             <Form
+              form={form}
               layout="vertical"
               onFinish={handleCreateToken}
-              initialValues={newToken}
             >
               <div className="modal-body">
                 <Form.Item
@@ -293,7 +306,6 @@ const LinkTokenPage: React.FC = () => {
                 >
                   <Input
                     placeholder="请输入LinkToken名称"
-                    onChange={(e) => setNewToken(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </Form.Item>
               </div>
@@ -339,7 +351,7 @@ const LinkTokenPage: React.FC = () => {
                   type="primary"
                   onClick={() => {
                     navigator.clipboard.writeText(createdToken)
-                      .then(() => message.success('复制成功！'))
+                      .then(() => message.success('已复制！'))
                       .catch(() => message.error('复制失败，请手动复制！'));
                   }}
                 >

@@ -145,42 +145,31 @@ npm run dev
 
 3. **修改配置文件**
 
-   - **docker-compose.override.yml**: 配置数据库密码、端口映射等
-   - **backend/.env**: 配置数据库连接、JWT密钥等
-   - **frontend/.env**: 配置API基础地址等
+   我们已经提供了配置文件的示例，您只需要复制示例文件并修改关键配置项即可：
 
-   **关键配置项说明**:
+   ```bash
+   # 复制示例配置文件到实际配置文件
+   cp docker-compose.override.example.yml docker-compose.override.yml
+   cp backend/.env.example backend/.env
+   cp frontend/.env.example frontend/.env
+   ```
+
+   **主要配置项修改**:
    
-   - **docker-compose.override.yml**:
-     ```yaml
-     # MySQL配置
-     MYSQL_ROOT_PASSWORD: your-secret-password
-     
-     # 后端配置
-     DATABASE_URL: mysql+pymysql://root:your-secret-password@mysql:3306/imagebed
-     JWT_SECRET_KEY: your-strong-secret-key
-     BASE_URL: http://localhost:80
-     ```
-     
-   - **backend/.env**:
-     ```
-     # 数据库连接
-     DATABASE_URL=mysql+pymysql://root:your-secret-password@mysql:3306/imagebed
-     
-     # JWT配置
-     JWT_SECRET_KEY=your-strong-secret-key
-     
-     # 项目配置
-     BASE_URL=http://localhost:80
-     UPLOAD_FOLDER=static
-     MAX_FILE_SIZE=10485760
-     
-     # Gitee配置（可选，用于图片同步）
-     GITEE_ACCESS_TOKEN=your-gitee-token
-     GITEE_REPO_OWNER=your-gitee-username
-     GITEE_REPO_NAME=your-gitee-repo
-     GITEE_REPO_BRANCH=main
-     ```
+   打开 `docker-compose.override.yml` 文件，修改以下关键配置项：
+   ```yaml
+   # MySQL配置
+   MYSQL_ROOT_PASSWORD: your-secret-password  # 修改为您的数据库密码
+   
+   # 后端配置
+   JWT_SECRET_KEY: your-strong-secret-key     # 修改为您的JWT密钥，建议使用openssl rand -hex 32生成
+   BASE_URL: http://localhost:80              # 根据您的部署环境修改
+   ```
+
+   > **注意**：
+   > - 配置文件复制后，docker-compose会自动读取docker-compose.override.yml中的配置
+   > - backend/.env文件中的数据库连接会自动继承docker-compose.override.yml中的配置
+   > - 如需修改更多配置，可以参考示例文件中的注释说明
 
 4. **Gitee仓库配置（可选）**
 
@@ -211,11 +200,8 @@ npm run dev
 | 配置文件 | 作用 | 位置 |
 |---------|------|------|
 | docker-compose.override.example.yml | Docker Compose示例配置 | 根目录 |
-| docker-compose.override.yml | 实际Docker Compose配置（被忽略） | 根目录 |
 | backend/.env.example | 后端环境变量示例 | backend/ |
-| backend/.env | 实际后端环境变量（被忽略） | backend/ |
 | frontend/.env.example | 前端环境变量示例 | frontend/ |
-| frontend/.env | 实际前端环境变量（被忽略） | frontend/ |
 
 #### 配置最佳实践
 

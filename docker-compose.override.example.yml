@@ -52,7 +52,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - JWT_SECRET_KEY=your-strong-secret-key
       - JWT_ACCESS_TOKEN_EXPIRE_DAYS=7
-      - BASE_URL=http://localhost:80
+      - BASE_URL=http://localhost:80  # BASE_URL=http://your-ip:your-port
       - UPLOAD_FOLDER=static
     # 优化内存配置
     deploy:
@@ -76,7 +76,7 @@ services:
     container_name: imagebed-nginx
     restart: unless-stopped
     ports:
-      - "0.0.0.0:80:80"
+      - "0.0.0.0:80:80"  # 0.0.0.0:host-port:container-port
     depends_on:
       - backend
     networks:

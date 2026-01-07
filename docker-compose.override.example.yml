@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # MySQL数据库服务
   mysql:
@@ -13,7 +11,7 @@ services:
       MYSQL_COLLATION: utf8mb4_unicode_ci
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./backend/sql/create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql
+      - ./backend/sql:/docker-entrypoint-initdb.d
     networks:
       - imagebed-network
     command: [
@@ -38,6 +36,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: my-backend:${BACK_VERSION:-latest}
     container_name: imagebed-backend
     restart: unless-stopped
     depends_on:
@@ -73,10 +72,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: my-nginx-front:${FRONT_VERSION:-latest}
     container_name: imagebed-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "0.0.0.0:80:80"
     depends_on:
       - backend
     networks:

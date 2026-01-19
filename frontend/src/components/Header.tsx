@@ -2,7 +2,7 @@ import React from 'react';
 import { Layout, Button, Typography } from 'antd';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LinkOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
+import { LinkOutlined, LogoutOutlined, FileTextOutlined, VideoCameraOutlined } from '@ant-design/icons';
 import '../styles/Header.css';
 
 const { Header: AntHeader } = Layout;
@@ -31,7 +31,17 @@ const Header: React.FC = () => {
             type="link"
             className="header-link header-link-home"
           >
-            首页
+            图片管理
+          </Button>
+        </Link>
+        
+        <Link to="/videos">
+          <Button
+            type="link"
+            icon={<VideoCameraOutlined />}
+            className="header-link header-link-videos"
+          >
+            视频管理
           </Button>
         </Link>
         

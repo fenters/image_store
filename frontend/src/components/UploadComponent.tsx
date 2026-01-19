@@ -3,7 +3,7 @@ import { Button, Card, Table, Progress, Input, Modal, message, Space, Typography
 import type { ColumnType } from 'antd/es/table';
 import { PlusOutlined, VideoCameraOutlined, FileTextOutlined } from '@ant-design/icons';
 import { ImageUploadResponseData } from '../types';
-import { imageApi } from '../api';
+import { imageApi, videoApi } from '../api';
 import { useImageContext } from './ImageContext';
 
 const { Text } = Typography;
@@ -114,7 +114,7 @@ const UploadComponent: React.FC = () => {
         const imgUrlRe = /(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/;
         if (imgUrlRe.test(maybeImgurl)) {
           // TODO: 实现URL上传逻辑
-          console.log('URL上传:', maybeImgurl);
+          console.log('URL上传暂未实现，请上传本地文件', maybeImgurl);
         }
       }
     };
@@ -128,7 +128,6 @@ const UploadComponent: React.FC = () => {
   // 普通上传小文件
   const uploadSmallFile = React.useCallback(async (file: File, nicname?: string) => {
     try {
-      console.log('开始上传小文件:', file.name, file.size);
       // 模拟上传进度，每500ms更新一次进度，减少渲染频率
       const progressInterval = setInterval(() => {
         setFiles(prev => prev.map(f => {
@@ -154,10 +153,11 @@ const UploadComponent: React.FC = () => {
         }));
       }, 500);
       
-      const response = await imageApi.upload([file], nicname ? [nicname] : undefined);
+      // 根据文件类型选择API
+      const isVideo = file.type.includes('video');
+      const api = isVideo ? videoApi : imageApi;
+      const response = await api.upload([file], nicname ? [nicname] : undefined);
       clearInterval(progressInterval);
-      console.log('上传响应:', response);
-      
       if (response.data.code === 0) {
         // 更新文件状态为成功，进度100%
         setFiles(prev => prev.map(f => 
@@ -214,13 +214,17 @@ const UploadComponent: React.FC = () => {
   const uploadFileInChunks = React.useCallback(async (file: File, chunkSize: number, nicname?: string) => {
     try {
       // 1. 初始化分片上传
-    const totalChunks = Math.ceil(file.size / chunkSize);
-    const initResponse = await imageApi.initChunkUpload({
-      filename: file.name,
-      file_size: file.size,
-      total_chunks: totalChunks,
-      nicname: nicname // 添加nicname参数
-    });
+      const totalChunks = Math.ceil(file.size / chunkSize);
+      const isVideo = file.type.includes('video');
+      const api = isVideo ? videoApi : imageApi;
+      
+      const initResponse = await api.initChunkUpload({
+        filename: file.name,
+        file_size: file.size,
+        total_chunks: totalChunks,
+        nicname: nicname, // 添加nicname参数
+        is_video: isVideo // 添加is_video参数
+      });
       
       if (initResponse.data.code !== 0) {
         throw new Error('初始化分片上传失败：' + initResponse.data.message);
@@ -257,7 +261,7 @@ const UploadComponent: React.FC = () => {
         formData.append('file', chunk);
         formData.append('filename', file.name);
         
-        await imageApi.uploadChunk(formData);
+        await api.uploadChunk(formData);
         
         // 原子更新上传进度
         uploadedChunks++;
@@ -335,7 +339,7 @@ const UploadComponent: React.FC = () => {
       await executeChunkUploads();
       
       // 3. 合并分片
-      const mergeResponse = await imageApi.mergeChunks(upload_id);
+      const mergeResponse = await api.mergeChunks(upload_id);
       
       if (mergeResponse.data.code === 0) {
         // 更新文件状态为成功
@@ -699,8 +703,7 @@ const UploadComponent: React.FC = () => {
 
   return (
     <Card className="upload-card" title="文件上传">
-      <div 
-        className="layui-upload-drag" 
+      <div className="layui-upload-drag" 
         onClick={() => fileInputRef.current?.click()}
         onDragOver={handleDragOver}
         onDrop={handleDrop}
@@ -710,7 +713,7 @@ const UploadComponent: React.FC = () => {
           ref={fileInputRef}
           className="file-input"
           onChange={handleFileChange}
-          accept="image/*,video/mp4,video/ogg,video/webm,video/3gpp,video/quicktime"
+          accept="image/*,video/mp4,video/ogg,video/webm,video/3gpp,video/quicktime,video/avi,video/mov,video/wmv,video/flv"
           multiple
         />
         <PlusOutlined className="upload-icon" />
@@ -718,7 +721,7 @@ const UploadComponent: React.FC = () => {
           <Text strong>点击、粘贴或拖拽到此处上传</Text>
         </div>
         <div>
-          <Text type="secondary">允许 jpg, png, gif, jpeg, webp 图片</Text>
+          <Text type="secondary">允许 jpg, png, gif, jpeg, webp 图片；mp4, ogg, webm, 3gpp, quicktime, avi, mov, wmv, flv 视频</Text>
         </div>
       </div>
       

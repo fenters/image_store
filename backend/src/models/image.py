@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.sql import func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, BigInteger
+from sqlalchemy.sql import func, expression
 from sqlalchemy.orm import relationship
 from ..database import Base
 
@@ -33,9 +33,11 @@ class ChunkUpload(Base):
     file_extension = Column(String(20), nullable=False)  # 文件扩展名
     total_chunks = Column(Integer, nullable=False)  # 总分片数
     uploaded_chunks = Column(Integer, default=0)  # 已上传分片数
-    file_size = Column(Integer, nullable=False)  # 文件总大小
+    file_size = Column(BigInteger, nullable=False)  # 文件总大小
     temp_path = Column(String(255), nullable=False)  # 临时存储路径
     created_at = Column(DateTime(timezone=True), server_default=func.now())  # 创建时间
+    expires_at = Column(DateTime(timezone=True), server_default=func.now() + expression.text("INTERVAL 7 DAY"))  # 过期时间
+    is_video = Column(Boolean, nullable=False, default=False)  # 是否为视频
     
     # 关系
     user = relationship("User", backref="chunk_uploads")

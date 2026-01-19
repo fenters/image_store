@@ -49,9 +49,36 @@ CREATE TABLE IF NOT EXISTS chunk_uploads (
     file_extension VARCHAR(20) NOT NULL,
     total_chunks INT NOT NULL,
     uploaded_chunks INT DEFAULT 0,
-    file_size INT NOT NULL,
+    file_size BIGINT NOT NULL,
     temp_path VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    expires_at DATETIME NOT NULL DEFAULT (NOW() + INTERVAL 7 DAY),
+    is_video BOOLEAN NOT NULL DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 创建视频表
+CREATE TABLE IF NOT EXISTS videos (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
+    nicname VARCHAR(255) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    url VARCHAR(255) NOT NULL,
+    markdown VARCHAR(500) NOT NULL,
+    html VARCHAR(500) NOT NULL,
+    gitee_url VARCHAR(255),
+    cover_path VARCHAR(255) NOT NULL,
+    cover_url VARCHAR(255) NOT NULL,
+    duration INT NOT NULL DEFAULT 0,
+    width INT NOT NULL DEFAULT 0,
+    height INT NOT NULL DEFAULT 0,
+    size BIGINT NOT NULL DEFAULT 0,
+    mime_type VARCHAR(50) NOT NULL,
+    resolution VARCHAR(20) NOT NULL,
+    bitrate INT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -63,6 +90,12 @@ CREATE INDEX idx_images_nicname ON images(nicname);
 CREATE INDEX idx_images_created_at ON images(created_at);
 CREATE INDEX idx_chunk_uploads_user_id ON chunk_uploads(user_id);
 CREATE INDEX idx_chunk_uploads_upload_id ON chunk_uploads(upload_id);
+CREATE INDEX idx_chunk_uploads_is_video ON chunk_uploads(is_video);
+CREATE INDEX idx_chunk_uploads_expires_at ON chunk_uploads(expires_at);
+CREATE INDEX idx_videos_user_id ON videos(user_id);
+CREATE INDEX idx_videos_nicname ON videos(nicname);
+CREATE INDEX idx_videos_created_at ON videos(created_at DESC);
+CREATE INDEX idx_videos_size ON videos(size);
 
 -- 创建管理员用户（账户：admin，密码：admin）
 INSERT INTO users (username, password, email) 

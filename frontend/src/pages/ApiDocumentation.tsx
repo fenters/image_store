@@ -101,11 +101,100 @@ print(response.json())`}
             },
             {
               key: '2',
+              label: '普通上传视频（支持批量）',
+              children: (
+                <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+                  <div>
+                    <Text strong>接口地址:</Text> <Text code>/api/videos</Text>
+                  </div>
+                  <div>
+                    <Text strong>请求方法:</Text> <Tag color="green">POST</Tag>
+                  </div>
+                  <div>
+                    <Text strong>认证要求:</Text> 需要在请求头中携带 <Text code>Authorization: Bearer &lt;token&gt;</Text>
+                  </div>
+                  <div>
+                    <Text strong>请求参数:</Text>
+                    <Paragraph>
+                      <Text code>files</Text> (FormData): 视频文件列表<br />
+                      <Text code>nicnames</Text> (FormData, 可选): 视频备注列表，与files顺序对应<br />
+                      <Text code>视频大小:单位GB，最大1GB</Text>
+                    </Paragraph>
+                  </div>
+                  <div>
+                    <Text strong>请求示例:</Text>
+                    <Code language="python">
+  {`import requests
+
+# 准备文件
+files = [
+    ('files', open('video1.mp4', 'rb')),
+    ('files', open('video2.mp4', 'rb')),
+    ('nicnames', '视频备注1'),
+    ('nicnames', '视频备注2')
+]
+
+# 请求头
+headers = {
+    'Authorization': 'Bearer <token>',
+}
+
+# 发送请求
+response = requests.post('http://localhost/api/videos', headers=headers, files=files)
+
+# 关闭文件
+for file_tuple in files:
+    if hasattr(file_tuple[1], 'close'):
+        file_tuple[1].close()
+
+print(response.json())`}
+                    </Code>
+                  </div>
+                  <div>
+                    <Text strong>响应示例:</Text>
+                    <Code language="json">
+{`{
+  "code": 0,
+  "message": "上传成功",
+  "data": {
+    "uploaded": 2,
+    "failed": 0,
+    "images": [],
+    "videos": [
+      {
+        "id": 1,
+        "filename": "example1.mp4",
+        "nicname": "视频备注1",
+        "url": "http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4",
+        "markdown": "![example1.mp4](http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4)",
+        "html": "<video src=\"http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4\" controls alt=\"example1.mp4\"></video>",
+        "gitee_url": null,
+        "cover_url": "http://localhost:8000/static/user1/videos/user1_1234567890_abc123.jpg",
+        "duration": 120,
+        "width": 1920,
+        "height": 1080,
+        "size": 20971520,
+        "mime_type": "video/mp4",
+        "resolution": "1920x1080",
+        "bitrate": 5000,
+        "created_at": "2023-01-01T00:00:00"
+      }
+    ]
+  },
+  "pagination": null
+}`}
+                    </Code>
+                  </div>
+                </Space>
+              )
+            },
+            {
+              key: '3',
               label: '初始化分片上传',
               children: (
                 <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <div>
-                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/init</Text>
+                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/init</Text> （图片）或 <Text code>/api/videos/chunk/init</Text> （视频）
                   </div>
                   <div>
                     <Text strong>请求方法:</Text> <Tag color="green">POST</Tag>
@@ -119,7 +208,7 @@ print(response.json())`}
                       <Text code>filename</Text> (string): 文件名<br />
                       <Text code>file_size</Text> (number): 文件大小（字节）<br />
                       <Text code>total_chunks</Text> (number): 总分片数<br />
-                      <Text code>nicname</Text> (string, 可选): 图片备注
+                      <Text code>nicname</Text> (string, 可选): 文件备注
                     </Paragraph>
                   </div>
                   <div>
@@ -134,7 +223,7 @@ headers = {
     'Content-Type': 'application/json',
 }
 
-# 请求体
+# 请求体（图片示例）
 payload = {
     'filename': 'large_image.png',
     'file_size': 10485760,
@@ -145,7 +234,19 @@ payload = {
 # 发送请求
 response = requests.post('http://localhost/api/images/chunk/init', headers=headers, json=payload)
 
-print(response.json())`}
+# 请求体（视频示例）
+payload_video = {
+    'filename': 'large_video.mp4',
+    'file_size': 52428800,
+    'total_chunks': 50,
+    'nicname': '大视频备注'
+}
+
+# 发送请求
+response_video = requests.post('http://localhost/api/videos/chunk/init', headers=headers, json=payload_video)
+
+print(response.json())
+print(response_video.json())`}
                     </Code>
                   </div>
                   <div>
@@ -165,12 +266,12 @@ print(response.json())`}
               )
             },
             {
-              key: '3',
+              key: '4',
               label: '上传分片',
               children: (
                 <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <div>
-                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/upload</Text>
+                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/upload</Text> （图片）或 <Text code>/api/videos/chunk/upload</Text> （视频）
                   </div>
                   <div>
                     <Text strong>请求方法:</Text> <Tag color="green">POST</Tag>
@@ -197,7 +298,7 @@ print(response.json())`}
 form_data = {
     'upload_id': 'uuid-string',
     'chunk_index': '0',
-    'filename': 'large_image.png'
+    'filename': 'large_video.mp4'
 }
 
 # 分片文件
@@ -210,8 +311,8 @@ headers = {
     'Authorization': 'Bearer <token>',
 }
 
-# 发送请求
-response = requests.post('http://localhost/api/images/chunk/upload', headers=headers, data=form_data, files=files)
+# 发送请求（视频示例）
+response = requests.post('http://localhost/api/videos/chunk/upload', headers=headers, data=form_data, files=files)
 
 # 关闭文件
 files['file'].close()
@@ -230,7 +331,7 @@ print(response.json())`}
     "upload_id": "uuid-string",
     "chunk_index": 0,
     "uploaded_chunks": 1,
-    "total_chunks": 10,
+    "total_chunks": 50,
     "is_completed": false
   }
 }`}
@@ -240,12 +341,12 @@ print(response.json())`}
               )
             },
             {
-              key: '4',
+              key: '5',
               label: '合并分片',
               children: (
                 <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <div>
-                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/merge/{'{'}upload_id{'}'}</Text>
+                    <Text strong>接口地址:</Text> <Text code>/api/images/chunk/merge/{'{'}upload_id{'}'}</Text> （图片）或 <Text code>/api/videos/chunk/merge/{'{'}upload_id{'}'}</Text> （视频）
                   </div>
                   <div>
                     <Text strong>请求方法:</Text> <Tag color="green">POST</Tag>
@@ -270,14 +371,14 @@ headers = {
     'Authorization': 'Bearer <token>',
 }
 
-# 发送请求
-response = requests.post('http://localhost/api/images/chunk/merge/uuid-string', headers=headers)
+# 发送请求（视频示例）
+response = requests.post('http://localhost/api/videos/chunk/merge/uuid-string', headers=headers)
 
 print(response.json())`}
                     </Code>
                   </div>
                   <div>
-                    <Text strong>响应示例:</Text>
+                    <Text strong>响应示例（图片）:</Text>
                     <Code language="json">
                       {
 `{
@@ -303,6 +404,38 @@ print(response.json())`}
 }`}
                     </Code>
                   </div>
+                  <div>
+                    <Text strong>响应示例（视频）:</Text>
+                    <Code language="json">
+                      {
+`{
+  "code": 0,
+  "message": "合并成功",
+  "data": {
+    "uploaded": 1,
+    "failed": 0,
+    "videos": [
+      {
+        "id": 2,
+        "filename": "large_video.mp4",
+        "nicname": "大视频备注",
+        "path": "static/user1/videos/xxx.mp4",
+        "url": "static/user1/videos/xxx.mp4",
+        "cover_url": "static/user1/covers/xxx.jpg",
+        "markdown": "![large_video.mp4](static/user1/covers/xxx.jpg)",
+        "html": "<video src=\"static/user1/videos/xxx.mp4\" poster=\"static/user1/covers/xxx.jpg\" controls></video>",
+        "duration": 180,
+        "width": 1920,
+        "height": 1080,
+        "size": 52428800,
+        "gitee_url": null,
+        "created_at": "2023-01-01T00:00:00"
+      }
+    ]
+  }
+}`}
+                    </Code>
+                  </div>
                 </Space>
               )
             }
@@ -312,7 +445,7 @@ print(response.json())`}
     },
     {
       key: 'get',
-      label: <span><EyeOutlined /> 获取图片</span>,
+      label: <span><EyeOutlined /> 获取资源</span>,
       children: (
         <Collapse 
           defaultActiveKey={['1']} 
@@ -389,37 +522,27 @@ print(response.json())`}
                   </div>
                 </Space>
               )
-            }
-          ]}
-        />
-      )
-    },
-    {
-      key: 'delete',
-      label: <span><DeleteOutlined /> 删除图片</span>,
-      children: (
-        <Collapse 
-          defaultActiveKey={['1']} 
-          ghost
-          items={[
+            },
             {
-              key: '1',
-              label: '删除单张图片',
+              key: '2',
+              label: '获取视频列表',
               children: (
                 <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <div>
-                    <Text strong>接口地址:</Text> <Text code>/api/images/{'{'}image_id{'}'}</Text>
+                    <Text strong>接口地址:</Text> <Text code>/api/videos</Text>
                   </div>
                   <div>
-                    <Text strong>请求方法:</Text> <Tag color="red">DELETE</Tag>
+                    <Text strong>请求方法:</Text> <Tag color="blue">GET</Tag>
                   </div>
                   <div>
                     <Text strong>认证要求:</Text> 需要在请求头中携带 <Text code>Authorization: Bearer &lt;token&gt;</Text>
                   </div>
                   <div>
-                    <Text strong>路径参数:</Text>
+                    <Text strong>查询参数:</Text>
                     <Paragraph>
-                      <Text code>image_id</Text> (number): 图片ID
+                      <Text code>page</Text> (number, 可选): 页码，默认1<br />
+                      <Text code>page_size</Text> (number, 可选): 每页数量，默认8<br />
+                      <Text code>name_like</Text> (string, 可选): 文件名或备注模糊查询
                     </Paragraph>
                   </div>
                   <div>
@@ -433,10 +556,116 @@ headers = {
     'Authorization': 'Bearer <token>',
 }
 
+# 查询参数
+params = {
+    'page': 1,
+    'page_size': 10,
+    'name_like': 'test'
+}
+
 # 发送请求
-response = requests.delete('http://localhost/api/images/1', headers=headers)
+response = requests.get('http://localhost/api/videos', headers=headers, params=params)
 
 print(response.json())`}
+                    </Code>
+                  </div>
+                  <div>
+                    <Text strong>响应示例:</Text>
+                    <Code language="json">
+                      {
+`{
+  "code": 0,
+  "message": "查询成功",
+  "data": {
+    "videos": [
+      {
+        "id": 1,
+        "filename": "test_video.mp4",
+        "nicname": "测试视频",
+        "url": "http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4",
+        "markdown": "![test_video.mp4](http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4)",
+        "html": "<video src=\"http://localhost:8000/static/user1/videos/user1_1234567890_abc123.mp4\" controls alt=\"test_video.mp4\"></video>",
+        "gitee_url": null,
+        "cover_url": "http://localhost:8000/static/user1/videos/user1_1234567890_abc123.jpg",
+        "duration": 120,
+        "width": 1920,
+        "height": 1080,
+        "size": 20971520,
+        "mime_type": "video/mp4",
+        "resolution": "1920x1080",
+        "bitrate": 5000,
+        "created_at": "2023-01-01T00:00:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 20,
+    "total_pages": 1
+  },
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 1,
+    "total_pages": 1
+  }
+}`}
+                    </Code>
+                  </div>
+                </Space>
+              )
+            }
+          ]}
+        />
+      )
+    },
+    {
+      key: 'delete',
+      label: <span><DeleteOutlined /> 删除资源</span>,
+      children: (
+        <Collapse 
+          defaultActiveKey={['1']} 
+          ghost
+          items={[
+            {
+              key: '1',
+              label: '删除单个资源',
+              children: (
+                <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+                  <div>
+                    <Text strong>接口地址:</Text> <Text code>/api/images/{'{'}image_id{'}'}</Text> （图片）或 <Text code>/api/videos/{'{'}video_id{'}'}</Text> （视频）
+                  </div>
+                  <div>
+                    <Text strong>请求方法:</Text> <Tag color="red">DELETE</Tag>
+                  </div>
+                  <div>
+                    <Text strong>认证要求:</Text> 需要在请求头中携带 <Text code>Authorization: Bearer &lt;token&gt;</Text>
+                  </div>
+                  <div>
+                    <Text strong>路径参数:</Text>
+                    <Paragraph>
+                      <Text code>image_id</Text> (number): 图片ID（用于图片删除）<br />
+                      <Text code>video_id</Text> (number): 视频ID（用于视频删除）
+                    </Paragraph>
+                  </div>
+                  <div>
+                    <Text strong>请求示例:</Text>
+                    <Code language="python">
+                      {
+`import requests
+
+# 请求头
+headers = {
+    'Authorization': 'Bearer <token>',
+}
+
+# 发送请求（删除图片）
+response = requests.delete('http://localhost/api/images/1', headers=headers)
+
+# 发送请求（删除视频）
+response_video = requests.delete('http://localhost/api/videos/1', headers=headers)
+
+print(response.json())
+print(response_video.json())`}
                     </Code>
                   </div>
                   <div>
@@ -457,11 +686,11 @@ print(response.json())`}
             },
             {
               key: '2',
-              label: '批量删除图片',
+              label: '批量删除资源',
               children: (
                 <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <div>
-                    <Text strong>接口地址:</Text> <Text code>/api/images/batch-delete</Text>
+                    <Text strong>接口地址:</Text> <Text code>/api/images/batch-delete</Text> （图片）或 <Text code>/api/videos/batch-delete</Text> （视频）
                   </div>
                   <div>
                     <Text strong>请求方法:</Text> <Tag color="red">POST</Tag>
@@ -472,7 +701,8 @@ print(response.json())`}
                   <div>
                     <Text strong>请求参数:</Text>
                     <Paragraph>
-                      <Text code>image_ids</Text> (array): 图片ID数组
+                      <Text code>image_ids</Text> (array): 图片ID数组（用于图片批量删除）<br />
+                      <Text code>video_ids</Text> (array): 视频ID数组（用于视频批量删除）
                     </Paragraph>
                   </div>
                   <div>
@@ -487,15 +717,24 @@ headers = {
     'Content-Type': 'application/json',
 }
 
-# 请求体
-payload = {
+# 请求体（批量删除图片）
+payload_images = {
     'image_ids': [1, 2, 3]
 }
 
 # 发送请求
-response = requests.post('http://localhost/api/images/batch-delete', headers=headers, json=payload)
+response_images = requests.post('http://localhost/api/images/batch-delete', headers=headers, json=payload_images)
 
-print(response.json())`}
+# 请求体（批量删除视频）
+payload_videos = {
+    'video_ids': [1, 2, 3]
+}
+
+# 发送请求
+response_videos = requests.post('http://localhost/api/videos/batch-delete', headers=headers, json=payload_videos)
+
+print(response_images.json())
+print(response_videos.json())`}
                     </Code>
                   </div>
                   <div>
@@ -529,7 +768,7 @@ print(response.json())`}
       <Content className="main-content">
         <Card title="API文档" className="api-documentation-card">
           <Text type="secondary">
-            本文档包含图床系统中与图片相关的所有API接口，可供外部系统集成使用。
+            本文档包含图床系统中与图片和视频相关的所有API接口，可供外部系统集成使用。
           </Text>
           
           <Divider />

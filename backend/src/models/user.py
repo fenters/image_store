@@ -16,3 +16,4 @@ class User(Base):
     # 关系
     tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
     images = relationship("Image", back_populates="user", cascade="all, delete-orphan")
+    videos = relationship("Video", back_populates="user", cascade="all, delete-orphan")

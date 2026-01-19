@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import os
 import asyncio
 
@@ -9,10 +8,11 @@ from src.config import settings
 from src.database import engine, Base
 
 # 导入路由
-from src.routers import auth_router, token_router, image_router
+from src.routers import auth_router, token_router, image_router, video_router
 
 # 导入工具函数
 from src.utils.file import cleanup_expired_chunks
+from src.utils.cors import CORSServedStaticFiles
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -35,8 +35,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 挂载静态文件
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# 挂载静态文件，添加CORS支持
+app.mount("/static", CORSServedStaticFiles(directory="static"), name="static")
 
 # 静态文件目录已经挂载，图片可以通过 /static/{username}/images/{filename} 访问
 
@@ -44,6 +44,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router)
 app.include_router(token_router)
 app.include_router(image_router)
+app.include_router(video_router)
 
 # 健康检查
 @app.get("/health")

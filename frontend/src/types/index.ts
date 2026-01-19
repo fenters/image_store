@@ -127,12 +127,67 @@ export interface ImageBatchDeleteResponseData {
   failed: number;
 }
 
+// 视频类型
+export interface Video {
+  id: number;
+  filename: string;
+  nicname: string;
+  url: string;
+  markdown: string;
+  html: string;
+  gitee_url?: string;
+  cover_url: string;
+  duration: number;
+  width: number;
+  height: number;
+  size: number;
+  mime_type: string;
+  resolution: string;
+  bitrate: number;
+  created_at: string;
+}
+
+// 视频列表请求参数类型
+export interface VideoListRequest {
+  page?: number;
+  page_size?: number;
+  start_date?: string;
+  end_date?: string;
+  name_like?: string;
+  sort_by?: string;
+  order?: 'asc' | 'desc';
+}
+
+// 视频上传响应类型
+export interface VideoUploadResponseData {
+  uploaded: number;
+  failed: number;
+  videos: Video[];
+}
+
+// 视频删除响应类型
+export interface VideoDeleteResponseData {
+  id: number;
+}
+
+// 视频批量删除请求类型
+export interface VideoBatchDeleteRequest {
+  video_ids: number[];
+}
+
+// 视频批量删除响应类型
+export interface VideoBatchDeleteResponseData {
+  deleted: number;
+  failed: number;
+}
+
 // 切片上传初始化请求类型
 export interface ChunkUploadInitRequest {
   filename: string;
   file_size: number;
   total_chunks: number;
   nicname?: string;
+  is_video?: boolean;
 }
 
 // 切片上传初始化响应类型

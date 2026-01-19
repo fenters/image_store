@@ -14,6 +14,12 @@ import {
   ImageDeleteResponseData,
   ImageBatchDeleteRequest,
   ImageBatchDeleteResponseData,
+  Video,
+  VideoListRequest,
+  VideoUploadResponseData,
+  VideoDeleteResponseData,
+  VideoBatchDeleteRequest,
+  VideoBatchDeleteResponseData,
   APIResponse,
   HealthCheckResponse,
   ChunkUploadInitRequest,
@@ -110,6 +116,66 @@ export const imageApi = {
   // 批量删除图片
   batchDeleteImages: (data: ImageBatchDeleteRequest) => {
     return request.post<APIResponse<ImageBatchDeleteResponseData>>('/images/batch-delete', data);
+  },
+};
+
+// 视频管理相关API
+export const videoApi = {
+  // 获取视频列表
+  getVideoList: (params?: VideoListRequest) => {
+    return request.get<APIResponse<{videos: Video[]}>>('/videos', { params });
+  },
+
+  // 上传视频（支持批量上传）
+  upload: (files: File[], nicnames?: string[]) => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    // 如果提供了nicnames，则添加整个nicnames列表
+    if (nicnames) {
+      nicnames.forEach((nicname) => {
+        formData.append('nicnames', nicname);
+      });
+    }
+    return request.post<APIResponse<VideoUploadResponseData>>('/videos', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 300000, // 延长到300秒，适应大视频上传
+    });
+  },
+
+  // 初始化分片上传
+  initChunkUpload: (data: ChunkUploadInitRequest) => {
+    return request.post<APIResponse<ChunkUploadInitResponseData>>('/videos/chunk/init', data);
+  },
+
+  // 上传分片
+  uploadChunk: (data: FormData) => {
+    return request.post<APIResponse<ChunkUploadResponseData>>('/videos/chunk/upload', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 60000, // 延长到60秒，适应分片上传
+    });
+  },
+
+  // 合并分片
+  mergeChunks: (uploadId: string) => {
+    return request.post<APIResponse<ChunkMergeResponseData>>(`/videos/chunk/merge/${uploadId}`, {}, {
+      timeout: 300000, // 延长到300秒，适应大视频合并
+    });
+  },
+
+  // 删除单个视频
+  deleteVideo: (videoId: number) => {
+    return request.delete<APIResponse<VideoDeleteResponseData>>(`/videos/${videoId}`);
+  },
+
+  // 批量删除视频
+  batchDeleteVideos: (data: VideoBatchDeleteRequest) => {
+    return request.post<APIResponse<VideoBatchDeleteResponseData>>('/videos/batch-delete', data);
   },
 };
 

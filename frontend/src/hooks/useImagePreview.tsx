@@ -9,7 +9,8 @@ interface UseImagePreviewProps {
 interface UseImagePreviewReturn {
   visible: boolean;
   previewImage: string;
-  openPreview: (imageUrl: string) => void;
+  previewUrl: string;
+  openPreview: (url: string) => void;
   closePreview: () => void;
   PreviewModal: () => ReactNode;
 }
@@ -18,15 +19,22 @@ export const useImagePreview = ({
   initialVisible = false,
 }: UseImagePreviewProps = {}): UseImagePreviewReturn => {
   const [visible, setVisible] = useState(initialVisible);
-  const [previewImage, setPreviewImage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false); // 使用state而不是ref，以便触发重渲染
   const lastMousePos = useRef({ x: 0, y: 0 });
 
-  const openPreview = useCallback((imageUrl: string) => {
-    setPreviewImage(imageUrl);
+  // 判断是否为视频
+  const isVideo = useCallback((url: string): boolean => {
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv'];
+    return videoExtensions.some(ext => url.toLowerCase().endsWith(ext));
+  }, []);
+
+  const openPreview = useCallback((url: string) => {
+    // 直接使用完整URL进行预览
+    setPreviewUrl(url);
     setVisible(true);
     setZoom(1);
     setRotation(0);
@@ -36,7 +44,7 @@ export const useImagePreview = ({
 
   const closePreview = useCallback(() => {
     setVisible(false);
-    setPreviewImage('');
+    setPreviewUrl('');
     setZoom(1);
     setRotation(0);
     setPosition({ x: 0, y: 0 });
@@ -108,7 +116,9 @@ export const useImagePreview = ({
   }, []);
 
   const PreviewModal = useCallback((): ReactNode => {
-    if (!visible || !previewImage) return null;
+    if (!visible || !previewUrl) return null;
+    
+    const urlIsVideo = isVideo(previewUrl);
     
     return (
       <div 
@@ -123,7 +133,7 @@ export const useImagePreview = ({
           display: 'flex', 
           justifyContent: 'center', 
           alignItems: 'center', 
-          cursor: isDragging ? 'grabbing' : (zoom > 1 ? 'grab' : 'zoom-out'),
+          cursor: urlIsVideo ? 'default' : (isDragging ? 'grabbing' : (zoom > 1 ? 'grab' : 'zoom-out')),
           userSelect: 'none'
         }} 
         onClick={closePreview}
@@ -144,60 +154,76 @@ export const useImagePreview = ({
         >
           <div
             style={{ 
-              transform: `scale(${zoom}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
+              transform: urlIsVideo ? 'none' : `scale(${zoom}) rotate(${rotation}deg) translate(${position.x}px, ${position.y}px)`,
               transition: 'transform 0.1s ease'
             }}
-            onWheel={handleWheel}
-            onDoubleClick={handleDoubleClick}
-            onMouseDown={handleMouseDown}
+            onWheel={urlIsVideo ? undefined : handleWheel}
+            onDoubleClick={urlIsVideo ? undefined : handleDoubleClick}
+            onMouseDown={urlIsVideo ? undefined : handleMouseDown}
             onClick={(e) => e.stopPropagation()}
           >
-            <AntImage
-              src={previewImage}
-              alt="Preview"
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-              preview={false}
-            />
+            {urlIsVideo ? (
+              <video
+                src={previewUrl}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                controls
+                autoPlay
+                onError={(e) => console.error('Video loading error:', e, 'URL:', previewUrl)}
+                onLoadedMetadata={(e) => console.log('Video metadata loaded:', e.currentTarget.duration)}
+              />
+            ) : (
+              <AntImage
+                src={previewUrl}
+                alt="Preview"
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                preview={false}
+              />
+            )}
           </div>
         </div>
         
-        <div style={{ position: 'absolute', bottom: '60px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 10 }}>
-          <Button 
-            type="primary" 
-            icon={<RotateLeftOutlined />} 
-            onClick={(e) => { e.stopPropagation(); rotateLeft(); }}
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
-          >
-            向左旋转
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<RotateRightOutlined />} 
-            onClick={(e) => { e.stopPropagation(); rotateRight(); }}
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
-          >
-            向右旋转
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<ZoomInOutlined />} 
-            onClick={(e) => { e.stopPropagation(); handleDoubleClick(); }}
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
-          >
-            重置
-          </Button>
-        </div>
+        {!urlIsVideo && (
+          <div style={{ position: 'absolute', bottom: '60px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '10px', zIndex: 10 }}>
+            <Button 
+              type="primary" 
+              icon={<RotateLeftOutlined />} 
+              onClick={(e) => { e.stopPropagation(); rotateLeft(); }}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
+            >
+              向左旋转
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<RotateRightOutlined />} 
+              onClick={(e) => { e.stopPropagation(); rotateRight(); }}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
+            >
+              向右旋转
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<ZoomInOutlined />} 
+              onClick={(e) => { e.stopPropagation(); handleDoubleClick(); }}
+              style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', borderColor: 'rgba(255, 255, 255, 0.4)', color: 'white' }}
+            >
+              重置
+            </Button>
+          </div>
+        )}
         
-        <div style={{ position: 'absolute', bottom: '20px', left: '0', right: '0', textAlign: 'center', color: 'white', fontSize: '12px', zIndex: 10 }}>
-          <p>滚轮缩放 · 双击重置 · 拖拽平移（缩放后）</p>
-        </div>
+        {!urlIsVideo && (
+          <div style={{ position: 'absolute', bottom: '20px', left: '0', right: '0', textAlign: 'center', color: 'white', fontSize: '12px', zIndex: 10 }}>
+            <p>滚轮缩放 · 双击重置 · 拖拽平移（缩放后）</p>
+          </div>
+        )}
       </div>
     );
-  }, [visible, previewImage, closePreview, zoom, rotation, position, handleWheel, rotateLeft, rotateRight, handleDoubleClick, handleMouseMove, handleMouseUp, handleMouseDown, handleMouseLeave, isDragging]);
+  }, [visible, previewUrl, closePreview, zoom, rotation, position, handleWheel, rotateLeft, rotateRight, handleDoubleClick, handleMouseMove, handleMouseUp, handleMouseDown, handleMouseLeave, isDragging, isVideo]);
 
   return {
     visible,
-    previewImage,
+    previewImage: previewUrl, // 保持向后兼容
+    previewUrl,
     openPreview,
     closePreview,
     PreviewModal,

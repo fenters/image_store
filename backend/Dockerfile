@@ -8,26 +8,32 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
+    
+# 换清华源（加速 apt 安装）
+RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian bookworm main" > /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security bookworm-security main" >> /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian bookworm-updates main" >> /etc/apt/sources.list
 
 # 安装系统依赖
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libffi-dev \
     libssl-dev \
     libmariadb-dev \
     curl \
+    ffmpeg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制requirements.txt
 COPY requirements.txt .
 
-# 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt
+# 安装Python依赖，使用阿里云PyPI镜像源加速
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
-# 安装生产环境所需的WSGI服务器gunicorn
-RUN pip install --no-cache-dir gunicorn
+# 安装生产环境所需的WSGI服务器gunicorn，使用阿里云PyPI镜像源加速
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ gunicorn
 
 # 复制应用代码
 COPY src/ ./src/

@@ -2,9 +2,12 @@
 
 ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片上传、管理、分享和API访问功能，支持多种上传方式和文件管理功能。
 
+账户：fenters 密码：fenters123
+
 ## 功能特点
 
 ### 前端功能
+
 - 📤 支持单张和批量图片上传
 - 📋 图片列表展示和管理
 - 🔗 生成分享链接和嵌入代码
@@ -15,6 +18,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 - 💻 LinkToken管理，支持API访问
 
 ### 后端功能
+
 - 🚀 基于FastAPI的高性能API
 - 📦 支持多种上传方式（普通上传、分片上传）
 - 💾 图片存储管理
@@ -25,6 +29,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 - 📈 API访问日志和统计
 
 ### 技术特性
+
 - 🏗️ 前后端分离架构
 - 🐳 Docker容器化部署
 - 🔄 CI/CD支持
@@ -34,6 +39,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 ## 技术栈
 
 ### 前端技术
+
 - **框架**: React 19
 - **路由**: React Router v7
 - **UI组件**: Ant Design 6
@@ -42,6 +48,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 - **语言**: TypeScript
 
 ### 后端技术
+
 - **框架**: FastAPI
 - **数据库**: MySQL 8.0
 - **缓存**: Redis 7.0
@@ -50,6 +57,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 - **语言**: Python 3.10
 
 ### 部署技术
+
 - **容器化**: Docker
 - **编排**: Docker Compose
 - **反向代理**: Nginx
@@ -93,6 +101,7 @@ ImageBed是一个功能完善的现代化图床系统，提供了便捷的图片
 #### 后端开发环境
 
 1. **安装依赖**
+
 ```bash
 cd backend
 python -m venv venv
@@ -104,12 +113,14 @@ pip install -r requirements.txt
 ```
 
 2. **配置环境变量**
+
 ```bash
 cp .env.example .env
 # 编辑.env文件，配置数据库和其他参数
 ```
 
 3. **启动开发服务器**
+
 ```bash
 uvicorn src.main:app --reload
 ```
@@ -117,12 +128,14 @@ uvicorn src.main:app --reload
 #### 前端开发环境
 
 1. **安装依赖**
+
 ```bash
 cd frontend
 npm install
 ```
 
 2. **启动开发服务器**
+
 ```bash
 npm run dev
 ```
@@ -132,17 +145,15 @@ npm run dev
 #### 单节点部署
 
 1. **确保Docker和Docker Compose已安装**
-
 2. **配置环境变量和Docker Compose**
 
    ```bash
    # 复制Docker Compose示例配置文件
    cp docker-compose.override.example.yml docker-compose.override.yml
-   
+
    # 复制后端环境变量示例文件
    cp backend/.env.example backend/.env
    ```
-
 3. **修改配置文件**
 
    我们已经提供了配置文件的示例，您只需要复制示例文件并修改关键配置项即可：
@@ -155,35 +166,37 @@ npm run dev
    ```
 
    **主要配置项修改**:
-   
+
    打开 `docker-compose.override.yml` 文件，修改以下关键配置项：
+
    ```yaml
    # MySQL配置
    MYSQL_ROOT_PASSWORD: your-secret-password  # 修改为您的数据库密码
-   
+
    # 后端配置
    JWT_SECRET_KEY: your-strong-secret-key     # 修改为您的JWT密钥，建议使用openssl rand -hex 32生成
    BASE_URL: http://localhost:80              # 根据您的部署环境修改
    ```
 
    > **注意**：
+   >
    > - 配置文件复制后，docker-compose会自动读取docker-compose.override.yml中的配置
    > - backend/.env文件中的数据库连接会自动继承docker-compose.override.yml中的配置
    > - 如需修改更多配置，可以参考示例文件中的注释说明
-
+   >
 4. **Gitee仓库配置（可选）**
 
-   如果启用了Gitee图片同步功能，需要在Gitee仓库中预先创建`images`目录：
-   
-   这个步骤确保Gitee API能够成功上传图片，否则会返回400 Bad Request错误。
+   如果启用了Gitee图片同步功能，需要在Gitee仓库中预先创建 `images`目录：
 
+   这个步骤确保Gitee API能够成功上传图片，否则会返回400 Bad Request错误。
 5. **启动所有服务**
+
    ```bash
    # 在项目根目录执行，--build参数确保重新构建镜像
    docker-compose up -d --build
    ```
-
 6. **访问应用**
+
    ```
    http://localhost:80
    ```
@@ -197,25 +210,26 @@ npm run dev
 
 #### 配置文件说明
 
-| 配置文件 | 作用 | 位置 |
-|---------|------|------|
-| docker-compose.override.example.yml | Docker Compose示例配置 | 根目录 |
-| backend/.env.example | 后端环境变量示例 | backend/ |
-| frontend/.env.example | 前端环境变量示例 | frontend/ |
+| 配置文件                            | 作用                   | 位置      |
+| ----------------------------------- | ---------------------- | --------- |
+| docker-compose.override.example.yml | Docker Compose示例配置 | 根目录    |
+| backend/.env.example                | 后端环境变量示例       | backend/  |
+| frontend/.env.example               | 前端环境变量示例       | frontend/ |
 
 #### 配置最佳实践
 
 1. **数据库配置**:
+
    - 使用强密码: `openssl rand -hex 16` 生成随机密码
    - 不同环境使用不同数据库
    - 定期备份数据库
-
 2. **JWT配置**:
+
    - 使用强密钥: `openssl rand -hex 32` 生成随机密钥
    - 定期更新密钥
    - 合理设置过期时间
-
 3. **文件存储配置**:
+
    - 确保存储路径有足够空间
    - 配置合理的文件大小限制
    - 考虑使用云存储服务
@@ -227,16 +241,17 @@ npm run dev
 - 所有代码变更需要通过 CI 测试
 - 提交信息使用清晰的描述
 
-
 ## 更新日志
 
 ### v1.0
+
 - 初始版本发布
 - 支持基本的图片上传和管理功能
 - 支持API访问和LinkToken管理
 - 支持Docker部署
 
 ### v1.1
+
 - 新增图片预览功能
 - 新增图片旋转和缩放功能
 - 新增图片拖拽平移功能

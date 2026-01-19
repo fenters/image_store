@@ -1,29 +1,29 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { imageApi } from '../api';
-import { Image } from '../types';
+import { videoApi } from '../api';
+import { Video } from '../types';
 import { Layout, Button, Modal, message, Empty, Typography, Divider } from 'antd';
 import '../styles/MainPage.css';
 import Header from '../components/Header';
 import { useImagePreview } from '../hooks/useImagePreview';
 import { useImageContextMenu } from '../hooks/useImageContextMenu';
 import { useBatchDelete } from '../hooks/useBatchDelete';
-import ImageCard from '../components/ImageCard';
+import VideoCard from '../components/VideoCard';
 import UploadComponent from '../components/UploadComponent';
 import { ImageProvider } from '../components/ImageContext';
 
 const { Content } = Layout;
 const { Title } = Typography;
 
-const MainPage: React.FC = () => {
-  const [images, setImages] = useState<Image[]>([]);
+const VideoPage: React.FC = () => {
+  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  // 使用图片预览hook（共享）
+  // 使用视频预览hook（共享）
   const { openPreview, PreviewModal } = useImagePreview();
   
-  // 使用ref存储最新的状态，避免将它们作为fetchImages的依赖项
+  // 使用ref存储最新的状态，避免将它们作为fetchVideos的依赖项
   const stateRef = useRef({
     loading,
     hasMore
@@ -37,8 +37,8 @@ const MainPage: React.FC = () => {
     };
   }, [loading, hasMore]);
 
-  // 获取图片列表（分页加载）
-  const fetchImages = React.useCallback(async (pageNum: number = 1, append: boolean = false) => {
+  // 获取视频列表（分页加载）
+  const fetchVideos = React.useCallback(async (pageNum: number = 1, append: boolean = false) => {
     // 从ref获取最新状态
     const { loading: currentLoading, hasMore: currentHasMore } = stateRef.current;
     
@@ -46,90 +46,90 @@ const MainPage: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await imageApi.getImageList({ page: pageNum, page_size: 8 });
+      const response = await videoApi.getVideoList({ page: pageNum, page_size: 8 });
       if (response.data.code === 0) {
-        const newImages = response.data.data;
-        setImages(prev => append ? [...prev, ...newImages] : newImages);
-        setHasMore(newImages.length >= 8);
+        const newVideos = response.data.data.videos || [];
+        setVideos(prev => append ? [...prev, ...newVideos] : newVideos);
+        setHasMore(newVideos.length >= 8);
         setPage(pageNum);
       }
     } catch (error) {
-      console.error('获取图片列表失败:', error);
-      message.error('获取图片列表失败，请重试');
+      console.error('获取视频列表失败:', error);
+      message.error('获取视频列表失败，请重试');
     } finally {
       setLoading(false);
     }
   }, []);
   
   // 使用批量删除hook
-  const batchDeleteHook = useBatchDelete(fetchImages, 'image');
+  const batchDeleteHook = useBatchDelete(fetchVideos, 'video');
   const { 
-    selectedIds: selectedImageIds, 
+    selectedIds: selectedVideoIds, 
     isDeleting, 
-    setAllItems: setAllImages, 
-    toggleSelection: toggleImageSelection, 
+    setAllItems: setAllVideos, 
+    toggleSelection: toggleVideoSelection, 
     clearSelection, 
-    isSelected: isImageSelected, 
-    batchDelete: batchDeleteImages,
+    isSelected: isVideoSelected, 
+    batchDelete,
     isSelecting,
     selectionBox,
     handleMouseDown
   } = batchDeleteHook;
 
-  // 使用图片上下文菜单hook（共享）
+  // 使用视频上下文菜单hook（共享）
   const { 
     showContextMenu, 
     ContextMenu 
   } = useImageContextMenu({
-    onRefresh: fetchImages,
-    onCopyLink: (image) => {
-      copyToClipboard(image.url, '图片链接');
+    onRefresh: fetchVideos,
+    onCopyLink: (video) => {
+      copyToClipboard(video.url, '视频链接');
     },
-    onBatchDelete: batchDeleteImages,
-    selectedImageIds: selectedImageIds,
+    onBatchDelete: batchDelete,
+    selectedImageIds: selectedVideoIds,
   });
 
-  const imagesGridRef = useRef<HTMLDivElement>(null);
+  const videosGridRef = useRef<HTMLDivElement>(null);
 
   // 初始加载
   React.useEffect(() => {
-    fetchImages(1, false);
-  }, [fetchImages]);
+    fetchVideos(1, false);
+  }, [fetchVideos]);
 
-  // 当图片列表变化时，更新批量删除hook的图片列表
+  // 当视频列表变化时，更新批量删除hook的视频列表
   useEffect(() => {
-    setAllImages(images);
-  }, [images, setAllImages]);
+    setAllVideos(videos as any);
+  }, [videos, setAllVideos]);
 
   // 加载更多
-  const loadMoreImages = React.useCallback(() => {
+  const loadMoreVideos = React.useCallback(() => {
     if (hasMore && !loading) {
-      fetchImages(page + 1, true);
+      fetchVideos(page + 1, true);
     }
-  }, [hasMore, loading, page, fetchImages]);
+  }, [hasMore, loading, page, fetchVideos]);
 
-  // 处理删除图片
-  const handleDeleteImage = React.useCallback(async (id: number) => {
+  // 处理删除视频
+  const handleDeleteVideo = React.useCallback(async (id: number) => {
     Modal.confirm({
       title: '确认删除',
-      content: '确定要删除这张图片吗？',
+      content: '确定要删除这个视频吗？',
       onOk: async () => {
         try {
-          const response = await imageApi.deleteImage(id);
+          const response = await videoApi.deleteVideo(id);
           if (response.data.code === 0) {
-            // 刷新图片列表
-            fetchImages();
+            // 刷新视频列表
+            fetchVideos();
             message.success('删除成功！');
           } else {
             message.error('删除失败：' + response.data.message);
           }
         } catch (error) {
-          console.error('删除图片失败:', error);
+          console.error('删除视频失败:', error);
           message.error('删除失败，请重试');
         }
       },
     });
-  }, [fetchImages]);
+  }, [fetchVideos]);
 
   // 复制链接
   const copyToClipboard = React.useCallback((text: string, messageType: string) => {
@@ -202,22 +202,22 @@ const MainPage: React.FC = () => {
 
       <Content className="main-content">
         {/* 上传组件 */}
-        <ImageProvider images={images} fetchImages={fetchImages}>
+        <ImageProvider images={videos} fetchImages={fetchVideos}>
           <UploadComponent />
         </ImageProvider>
 
         <Divider />
 
-        {/* 图片列表 */}
+        {/* 视频列表 */}
         <div className="images-container">
-          <Title level={4} className="images-section-title">我的图片</Title>
+          <Title level={4} className="images-section-title">我的视频</Title>
           
-          {images.length === 0 ? (
+          {videos.length === 0 ? (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={
                 <span>
-                  暂无图片，上传一张试试吧！
+                  暂无视频，上传一个试试吧！
                 </span>
               }
             />
@@ -225,20 +225,22 @@ const MainPage: React.FC = () => {
             <>
               <div 
                 className="images-grid"
-                ref={imagesGridRef}
+                ref={videosGridRef}
                 onMouseDown={handleMouseDown}
               >
-                {images.map(image => (
-                  <ImageCard 
-                    key={image.id} 
-                    image={image}
+                {videos.map(video => (
+                  <VideoCard 
+                    key={video.id} 
+                    video={video}
                     copyToClipboard={copyToClipboard}
-                    handleDeleteImage={handleDeleteImage}
+                    handleDeleteVideo={handleDeleteVideo}
                     onContextMenu={showContextMenu}
-                    onImageClick={openPreview}
-                    isSelected={isImageSelected(image.id)}
-                    onToggleSelect={toggleImageSelection}
-                    data-image-id={image.id}
+                    onVideoClick={(url) => { 
+                        openPreview(url); 
+                    }}
+                    isSelected={isVideoSelected(video.id)}
+                    onToggleSelect={toggleVideoSelection}
+                    data-video-id={video.id}
                   />
                 ))}
                 
@@ -267,16 +269,16 @@ const MainPage: React.FC = () => {
                   <Button 
                     type="default" 
                     loading={loading} 
-                    onClick={loadMoreImages}
+                    onClick={loadMoreVideos}
                   >
                     {loading ? '加载中...' : '加载更多'}
                   </Button>
                 </div>
               )}
               
-              {!hasMore && images.length > 0 && (
+              {!hasMore && videos.length > 0 && (
                 <div style={{ textAlign: 'center', marginTop: '20px', color: '#999' }}>
-                  没有更多图片了
+                  没有更多视频了
                 </div>
               )}
               
@@ -290,10 +292,10 @@ const MainPage: React.FC = () => {
         </div>
         
         {/* 批量操作栏 */}
-        {selectedImageIds.length > 0 && (
+        {selectedVideoIds.length > 0 && (
           <div className="batch-actions">
             <div className="batch-actions-info">
-              已选择 {selectedImageIds.length} 张图片
+              已选择 {selectedVideoIds.length} 个视频
             </div>
             <div className="batch-actions-buttons">
               <Button 
@@ -306,7 +308,7 @@ const MainPage: React.FC = () => {
                 type="primary" 
                 danger 
                 loading={isDeleting}
-                onClick={batchDeleteImages}
+                onClick={batchDelete}
               >
                 批量删除
               </Button>
@@ -318,4 +320,4 @@ const MainPage: React.FC = () => {
   );
 };
 
-export default MainPage;
+export default VideoPage;

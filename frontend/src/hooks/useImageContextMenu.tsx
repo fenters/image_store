@@ -31,6 +31,7 @@ interface UseImageContextMenuReturn {
 }
 
 export const useImageContextMenu = ({ 
+  onCopyImage,
   onCopyLink, 
   onOpenInNewWindow,
   onBatchDelete,
@@ -79,6 +80,65 @@ export const useImageContextMenu = ({
     window.location.reload();
   }, [hideContextMenu]);
 
+  // 处理复制文本的辅助函数（支持降级）
+  const copyTextToClipboard = useCallback((text: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // 尝试使用现代的Clipboard API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => resolve(true))
+          .catch(() => {
+            // 降级到传统方法
+            resolve(useLegacyCopy(text));
+          });
+      } else {
+        // 直接使用传统方法
+        resolve(useLegacyCopy(text));
+      }
+    });
+  }, []);
+
+  // 传统的复制方法
+  const useLegacyCopy = useCallback((text: string): boolean => {
+    try {
+      // 创建一个临时的textarea元素
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      
+      // 确保元素不在屏幕上，并且设置一些必要的样式
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      textArea.style.width = '2em';
+      textArea.style.height = '2em';
+      textArea.style.padding = '0';
+      textArea.style.border = 'none';
+      textArea.style.outline = 'none';
+      textArea.style.boxShadow = 'none';
+      textArea.style.background = 'transparent';
+      
+      document.body.appendChild(textArea);
+      
+      // 选择文本并复制
+      textArea.focus();
+      textArea.select();
+      
+      let successful = false;
+      try {
+        successful = document.execCommand('copy');
+      } catch (err) {
+        console.error('复制失败:', err);
+      }
+      
+      // 清理
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (error) {
+      console.error('传统复制方法失败:', error);
+      return false;
+    }
+  }, []);
+
   // 处理复制图片
   const handleCopyImage = useCallback(() => {
     if (!selectedImage) return;
@@ -103,40 +163,72 @@ export const useImageContextMenu = ({
           // 将canvas内容转换为Blob
           canvas.toBlob((blob) => {
             if (blob) {
-              // 创建一个ClipboardItem
-              const clipboardItem = new ClipboardItem({ 'image/png': blob });
-              
               // 尝试复制图片数据
-              navigator.clipboard.write([clipboardItem])
-                .then(() => {
-                  message.success('图片复制成功！');
-                })
-                .catch(() => {
-                  // 如果复制图片数据失败，尝试复制图片链接
-                  navigator.clipboard.writeText(selectedImage.url)
-                    .then(() => {
-                      message.success('图片链接复制成功！');
-                    })
-                    .catch(() => {
+              if (navigator.clipboard && window.isSecureContext) {
+                const clipboardItem = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([clipboardItem])
+                  .then(() => {
+                    message.success('图片复制成功！');
+                    if (onCopyImage) {
+                      onCopyImage(selectedImage);
+                    }
+                  })
+                  .catch((error) => {
+                    console.error('复制图片数据失败:', error);
+                    // 如果复制图片数据失败，尝试复制图片链接
+                    copyTextToClipboard(selectedImage.url)
+                      .then((success) => {
+                        if (success) {
+                          message.success('图片数据复制失败，已复制图片链接！');
+                          if (onCopyImage) {
+                            onCopyImage(selectedImage);
+                          }
+                        } else {
+                          message.error('图片复制失败，请手动复制！');
+                        }
+                      });
+                  })
+                  .finally(() => {
+                    hideContextMenu();
+                  });
+              } else {
+                // 非安全上下文，直接复制图片链接
+                copyTextToClipboard(selectedImage.url)
+                  .then((success) => {
+                    if (success) {
+                      message.success('已复制图片链接！');
+                      if (onCopyImage) {
+                        onCopyImage(selectedImage);
+                      }
+                    } else {
                       message.error('图片复制失败，请手动复制！');
-                    });
-                });
+                    }
+                  })
+                  .finally(() => {
+                    hideContextMenu();
+                  });
+              }
+            } else {
+              hideContextMenu();
+              message.error('图片复制失败，请手动复制！');
             }
           });
+        } else {
+          hideContextMenu();
+          message.error('图片复制失败，请手动复制！');
         }
       };
       
       img.onerror = () => {
+        hideContextMenu();
         message.error('图片加载失败，无法复制！');
       };
-      
-      hideContextMenu();
     } catch (error) {
       console.error('复制图片失败:', error);
       message.error('图片复制失败，请手动复制！');
       hideContextMenu();
     }
-  }, [selectedImage, hideContextMenu]);
+  }, [selectedImage, hideContextMenu, onCopyImage, copyTextToClipboard]);
 
   // 处理复制链接
   const handleCopyLink = useCallback((format: 'url' | 'html' | 'markdown') => {
@@ -157,19 +249,21 @@ export const useImageContextMenu = ({
         break;
     }
     
-    navigator.clipboard.writeText(linkText)
-      .then(() => {
-        message.success(`链接已复制为${format}格式！`);
-        if (onCopyLink) {
-          onCopyLink(selectedImage);
+    copyTextToClipboard(linkText)
+      .then((success) => {
+        if (success) {
+          message.success(`链接已复制为${format}格式！`);
+          if (onCopyLink) {
+            onCopyLink(selectedImage);
+          }
+        } else {
+          message.error('链接复制失败，请手动复制！');
         }
       })
-      .catch(() => {
-        message.error('链接复制失败，请手动复制！');
+      .finally(() => {
+        hideContextMenu();
       });
-    
-    hideContextMenu();
-  }, [selectedImage, onCopyLink, hideContextMenu]);
+  }, [selectedImage, onCopyLink, hideContextMenu, copyTextToClipboard]);
 
   // 处理新窗口打开
   const handleOpenInNewWindow = useCallback(() => {
@@ -193,6 +287,9 @@ export const useImageContextMenu = ({
   // 上下文菜单组件
   const ContextMenu = useCallback((): ReactNode => {
     if (!isVisible || !selectedImage) return null;
+    
+    // 判断是否为视频
+    const isVideo = 'cover_url' in selectedImage && 'duration' in selectedImage;
     
     return (
       <div
@@ -231,25 +328,27 @@ export const useImageContextMenu = ({
           刷新
         </div>
         
-        {/* 复制图片 */}
-        <div
-          className="context-menu-item"
-          onClick={handleCopyImage}
-          style={{
-            padding: '8px 16px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            color: 'rgba(0, 0, 0, 0.85)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#f5f5f5';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#fff';
-          }}
-        >
-          复制图片
-        </div>
+        {/* 复制图片 - 仅图片显示 */}
+        {!isVideo && (
+          <div
+            className="context-menu-item"
+            onClick={handleCopyImage}
+            style={{
+              padding: '8px 16px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              color: 'rgba(0, 0, 0, 0.85)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f5f5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#fff';
+            }}
+          >
+            复制图片
+          </div>
+        )}
         
         {/* 复制链接 */}
         <div

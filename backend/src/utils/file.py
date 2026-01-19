@@ -25,15 +25,23 @@ async def save_file(file: UploadFile, username: str) -> Tuple[str, str]:
             detail=f"不支持的文件类型，允许的类型：{', '.join(settings.allowed_file_types_list)}"
         )
     
-    # 创建用户目录结构：static/{username}/images/
-    user_image_dir = os.path.join(settings.UPLOAD_FOLDER, username, "images")
-    os.makedirs(user_image_dir, exist_ok=True)
+    # 判断文件是否为视频
+    is_video = file_extension in ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv"]
+    
+    # 创建用户目录结构
+    if is_video:
+        user_dir = os.path.join(settings.UPLOAD_FOLDER, username, "videos")
+        file_type = "videos"
+    else:
+        user_dir = os.path.join(settings.UPLOAD_FOLDER, username, "images")
+        file_type = "images"
+    os.makedirs(user_dir, exist_ok=True)
     
     # 生成唯一的文件名，避免冲突
     unique_filename = generate_nicname(username, file_extension)
     
     # 文件路径：使用唯一文件名进行保存
-    file_path = os.path.join(user_image_dir, unique_filename)
+    file_path = os.path.join(user_dir, unique_filename)
     
     # 保存文件
     try:
@@ -43,13 +51,23 @@ async def save_file(file: UploadFile, username: str) -> Tuple[str, str]:
             content = await file.read()
             content_length = len(content)
             
-            if content_length > settings.MAX_FILE_SIZE:
-                await f.close()
-                os.remove(file_path)  # 清理已写入的文件
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"文件大小超过限制，最大允许 {settings.MAX_FILE_SIZE / 1024 / 1024:.1f}MB"
-                )
+            # 根据文件类型检查大小限制
+            if is_video:
+                if content_length > settings.MAX_VIDEO_SIZE:
+                    await f.close()
+                    os.remove(file_path)  # 清理已写入的文件
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"视频大小超过限制，最大允许 {settings.MAX_VIDEO_SIZE / 1024 / 1024 / 1024:.1f}GB"
+                    )
+            else:
+                if content_length > settings.MAX_FILE_SIZE:
+                    await f.close()
+                    os.remove(file_path)  # 清理已写入的文件
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"文件大小超过限制，最大允许 {settings.MAX_FILE_SIZE / 1024 / 1024:.1f}MB"
+                    )
             
             await f.write(content)
     except HTTPException:
@@ -61,7 +79,7 @@ async def save_file(file: UploadFile, username: str) -> Tuple[str, str]:
         )
     
     # 生成URL
-    url = f"{settings.BASE_URL}/{settings.UPLOAD_FOLDER}/{username}/images/{unique_filename}"
+    url = f"{settings.BASE_URL}/{settings.UPLOAD_FOLDER}/{username}/{file_type}/{unique_filename}"
     
     return file_path, url
 
@@ -107,14 +125,21 @@ def clear_empty_user_dir(username: str) -> None:
     """清理空用户目录"""
     # 清理图片目录
     user_image_dir = os.path.join(settings.UPLOAD_FOLDER, username, "images")
+    user_video_dir = os.path.join(settings.UPLOAD_FOLDER, username, "videos")
+    user_dir = os.path.join(settings.UPLOAD_FOLDER, username)
+    
     try:
-        if os.path.exists(user_image_dir):
-            if len(os.listdir(user_image_dir)) == 0:
-                os.rmdir(user_image_dir)
-                # 清理用户根目录
-                user_dir = os.path.join(settings.UPLOAD_FOLDER, username)
-                if os.path.exists(user_dir) and len(os.listdir(user_dir)) == 0:
-                    os.rmdir(user_dir)
+        # 清理图片目录
+        if os.path.exists(user_image_dir) and len(os.listdir(user_image_dir)) == 0:
+            os.rmdir(user_image_dir)
+        
+        # 清理视频目录
+        if os.path.exists(user_video_dir) and len(os.listdir(user_video_dir)) == 0:
+            os.rmdir(user_video_dir)
+        
+        # 清理用户根目录
+        if os.path.exists(user_dir) and len(os.listdir(user_dir)) == 0:
+            os.rmdir(user_dir)
     except PermissionError as e:
         print(f"清理空目录权限不足: {str(e)}")
     except OSError as e:
@@ -139,11 +164,19 @@ async def init_chunk_upload(username: str, filename: str, file_size: int, total_
         )
     
     # 验证文件大小
-    if file_size > settings.MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"文件大小超过限制，最大允许 {settings.MAX_FILE_SIZE / 1024 / 1024:.1f}MB"
-        )
+    is_video = file_extension in ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv"]
+    if is_video:
+        if file_size > settings.MAX_VIDEO_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"视频大小超过限制，最大允许 {settings.MAX_VIDEO_SIZE / 1024 / 1024 / 1024:.1f}GB"
+            )
+    else:
+        if file_size > settings.MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"文件大小超过限制，最大允许 {settings.MAX_FILE_SIZE / 1024 / 1024:.1f}MB"
+            )
     
     # 生成上传会话ID
     upload_id = str(uuid.uuid4())
@@ -185,21 +218,27 @@ async def save_chunk(upload_id: str, chunk_index: int, file: UploadFile) -> None
         )
 
 
-async def merge_chunks(upload_id: str, username: str, filename: str, total_chunks: int) -> Tuple[str, str]:
+async def merge_chunks(upload_id: str, username: str, filename: str, total_chunks: int, is_video: bool = False) -> Tuple[str, str]:
     """合并所有切片成完整文件"""
     
-    # 创建用户目录结构：static/{username}/images/
-    user_image_dir = os.path.join(settings.UPLOAD_FOLDER, username, "images")
-    os.makedirs(user_image_dir, exist_ok=True)
-    
-    # 获取文件扩展名
+    # 判断文件是否为视频
     file_extension = filename.split(".")[-1].lower()
+    is_video = is_video or file_extension in ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv"]
+    
+    # 创建用户目录结构
+    if is_video:
+        user_dir = os.path.join(settings.UPLOAD_FOLDER, username, "videos")
+        file_type = "videos"
+    else:
+        user_dir = os.path.join(settings.UPLOAD_FOLDER, username, "images")
+        file_type = "images"
+    os.makedirs(user_dir, exist_ok=True)
     
     # 生成唯一的文件名，避免冲突
     unique_filename = generate_nicname(username, file_extension)
     
     # 文件路径：使用唯一文件名进行保存
-    file_path = os.path.join(user_image_dir, unique_filename)
+    file_path = os.path.join(user_dir, unique_filename)
     
     # 临时目录路径
     temp_dir = os.path.join(settings.TEMP_UPLOAD_FOLDER, upload_id)
@@ -238,7 +277,7 @@ async def merge_chunks(upload_id: str, username: str, filename: str, total_chunk
         )
     
     # 生成URL：使用唯一文件名
-    url = f"{settings.BASE_URL}/{settings.UPLOAD_FOLDER}/{username}/images/{unique_filename}"
+    url = f"{settings.BASE_URL}/{settings.UPLOAD_FOLDER}/{username}/{file_type}/{unique_filename}"
     
     return file_path, url
 

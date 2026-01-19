@@ -1,21 +1,22 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Image } from '../types';
-import { imageApi } from '../api';
+import { Image, Video } from '../types';
+import { imageApi, videoApi } from '../api';
 import { message, Modal } from 'antd';
 
 /**
- * 批量删除图片Hook
- * @param onRefresh 刷新图片列表的回调函数
+ * 批量删除资源Hook
+ * @param onRefresh 刷新资源列表的回调函数
+ * @param type 资源类型：'image' 或 'video'
  */
-export const useBatchDelete = (onRefresh: () => void) => {
-  // 选中的图片ID列表
-  const [selectedImageIds, setSelectedImageIds] = useState<number[]>([]);
-  // 记录当前选中的图片数据
-  const [selectedImages, setSelectedImages] = useState<Image[]>([]);
+export const useBatchDelete = (onRefresh: () => void, type: 'image' | 'video' = 'image') => {
+  // 选中的资源ID列表
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  // 记录当前选中的资源数据
+  const [selectedItems, setSelectedItems] = useState<(Image | Video)[]>([]);
   // 是否正在删除
   const [isDeleting, setIsDeleting] = useState(false);
-  // 所有图片列表的引用，用于批量操作时查找图片数据
-  const allImagesRef = useRef<Image[]>([]);
+  // 所有资源列表的引用，用于批量操作时查找资源数据
+  const allItemsRef = useRef<(Image | Video)[]>([]);
   
   // 范围选择相关状态
   const [isSelecting, setIsSelecting] = useState(false);
@@ -23,26 +24,26 @@ export const useBatchDelete = (onRefresh: () => void) => {
   const startPointRef = useRef({ x: 0, y: 0 });
 
   /**
-   * 设置所有图片列表，用于查找图片数据
+   * 设置所有资源列表，用于查找资源数据
    */
-  const setAllImages = useCallback((images: Image[]) => {
-    allImagesRef.current = images;
+  const setAllItems = useCallback((items: (Image | Video)[]) => {
+    allItemsRef.current = items;
   }, []);
 
   /**
-   * 切换图片选中状态
+   * 切换资源选中状态
    */
-  const toggleImageSelection = useCallback((imageId: number, image: Image) => {
-    setSelectedImageIds(prev => {
-      if (prev.includes(imageId)) {
+  const toggleSelection = useCallback((itemId: number, item: Image | Video) => {
+    setSelectedIds(prev => {
+      if (prev.includes(itemId)) {
         // 取消选中
-        const newIds = prev.filter(id => id !== imageId);
-        setSelectedImages(prevImages => prevImages.filter(img => img.id !== imageId));
+        const newIds = prev.filter(id => id !== itemId);
+        setSelectedItems(prevItems => prevItems.filter(i => i.id !== itemId));
         return newIds;
       } else {
         // 添加选中
-        const newIds = [...prev, imageId];
-        setSelectedImages(prevImages => [...prevImages, image]);
+        const newIds = [...prev, itemId];
+        setSelectedItems(prevItems => [...prevItems, item]);
         return newIds;
       }
     });
@@ -52,60 +53,66 @@ export const useBatchDelete = (onRefresh: () => void) => {
    * 取消所有选中
    */
   const clearSelection = useCallback(() => {
-    setSelectedImageIds([]);
-    setSelectedImages([]);
+    setSelectedIds([]);
+    setSelectedItems([]);
   }, []);
 
   /**
-   * 检查图片是否被选中
+   * 检查资源是否被选中
    */
-  const isImageSelected = useCallback((imageId: number) => {
-    return selectedImageIds.includes(imageId);
-  }, [selectedImageIds]);
+  const isSelected = useCallback((itemId: number) => {
+    return selectedIds.includes(itemId);
+  }, [selectedIds]);
 
   /**
    * 执行批量删除
    */
-  const batchDeleteImages = useCallback(async () => {
-    if (selectedImageIds.length === 0) {
-      message.warning('请先选择要删除的图片');
+  const batchDelete = useCallback(async () => {
+    if (selectedIds.length === 0) {
+      message.warning(`请先选择要删除的${type === 'image' ? '图片' : '视频'}`);
       return;
     }
 
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除选中的 ${selectedImageIds.length} 张图片吗？`,
+      content: `确定要删除选中的 ${selectedIds.length} ${type === 'image' ? '张图片' : '个视频'}吗？`,
       onOk: async () => {
         setIsDeleting(true);
         try {
-          // 调用批量删除API
-          const batchDeleteRequest = { image_ids: selectedImageIds };
-          const response = await imageApi.batchDeleteImages(batchDeleteRequest);
+          let response;
+          // 根据资源类型调用不同的API
+          if (type === 'image') {
+            const batchDeleteRequest = { image_ids: selectedIds };
+            response = await imageApi.batchDeleteImages(batchDeleteRequest);
+          } else {
+            const batchDeleteRequest = { video_ids: selectedIds };
+            response = await videoApi.batchDeleteVideos(batchDeleteRequest);
+          }
           
           if (response.data.code === 0) {
-            message.success(`成功删除 ${selectedImageIds.length} 张图片！`);
+            message.success(`成功删除 ${selectedIds.length} ${type === 'image' ? '张图片' : '个视频'}！`);
             // 清空选中状态
             clearSelection();
-            // 刷新图片列表
+            // 刷新资源列表
             onRefresh();
           } else {
             message.error('删除失败：' + response.data.message);
           }
         } catch (error) {
-          console.error('批量删除图片失败:', error);
+          console.error(`批量删除${type === 'image' ? '图片' : '视频'}失败:`, error);
           message.error('删除失败，请重试');
         } finally {
           setIsDeleting(false);
         }
       },
     });
-  }, [selectedImageIds, clearSelection, onRefresh]);
+  }, [selectedIds, clearSelection, onRefresh, type]);
 
   /**
    * 处理鼠标按下事件，开始范围选择
    */
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // 确保点击的是空白区域，不是图片或其他元素
+    // 确保点击的是空白区域，不是资源或其他元素
     if (e.target instanceof HTMLDivElement && e.target.classList.contains('images-grid')) {
       e.preventDefault();
       setIsSelecting(true);
@@ -143,47 +150,47 @@ export const useBatchDelete = (onRefresh: () => void) => {
 
     setIsSelecting(false);
 
-    // 检查哪些图片在选择框内
+    // 检查哪些资源在选择框内
     if (selectionBox.width > 0 && selectionBox.height > 0) {
-      // 找到所有图片卡片元素
-      const imageCards = document.querySelectorAll('[data-image-id]');
-      const selectedInBox: Image[] = [];
+      // 找到所有资源卡片元素
+      const resourceCards = document.querySelectorAll(`[data-${type}-id]`);
+      const selectedInBox: (Image | Video)[] = [];
 
-      imageCards.forEach(card => {
+      resourceCards.forEach(card => {
         const cardRect = card.getBoundingClientRect();
         
-        // 检查图片卡片是否与选择框相交（只要有任何部分重叠就算选中）
+        // 检查资源卡片是否与选择框相交（只要有任何部分重叠就算选中）
         const isIntersecting = (
-          cardRect.left < selectionBox.x + selectionBox.width && // 图片左边缘在选择框右边缘左侧
-          cardRect.right > selectionBox.x && // 图片右边缘在选择框左边缘右侧
-          cardRect.top < selectionBox.y + selectionBox.height && // 图片上边缘在选择框下边缘上方
-          cardRect.bottom > selectionBox.y // 图片下边缘在选择框上边缘下方
+          cardRect.left < selectionBox.x + selectionBox.width && // 资源左边缘在选择框右边缘左侧
+          cardRect.right > selectionBox.x && // 资源右边缘在选择框左边缘右侧
+          cardRect.top < selectionBox.y + selectionBox.height && // 资源上边缘在选择框下边缘上方
+          cardRect.bottom > selectionBox.y // 资源下边缘在选择框上边缘下方
         );
         
         if (isIntersecting) {
-          // 获取图片ID并找到对应的图片数据
-          const imageId = parseInt(card.getAttribute('data-image-id') || '0');
-          const image = allImagesRef.current.find(img => img.id === imageId);
-          if (image) {
-            selectedInBox.push(image);
+          // 获取资源ID并找到对应的资源数据
+          const itemId = parseInt(card.getAttribute(`data-${type}-id`) || '0');
+          const item = allItemsRef.current.find(i => i.id === itemId);
+          if (item) {
+            selectedInBox.push(item);
           }
         }
       });
 
-      // 选中所有在选择框内的图片
+      // 选中所有在选择框内的资源
       if (selectedInBox.length > 0) {
         // 先清空当前选择
         clearSelection();
-        // 然后添加所有在选择框内的图片
-        selectedInBox.forEach(image => {
-          toggleImageSelection(image.id, image);
+        // 然后添加所有在选择框内的资源
+        selectedInBox.forEach(item => {
+          toggleSelection(item.id, item);
         });
       }
     }
 
     // 重置选择框
     setSelectionBox({ x: 0, y: 0, width: 0, height: 0 });
-  }, [isSelecting, selectionBox, clearSelection, toggleImageSelection]);
+  }, [isSelecting, selectionBox, clearSelection, toggleSelection, type]);
 
   // 添加全局鼠标事件监听
   useEffect(() => {
@@ -199,18 +206,18 @@ export const useBatchDelete = (onRefresh: () => void) => {
 
   return {
     // 状态
-    selectedImageIds,
-    selectedImages,
+    selectedIds,
+    selectedItems,
     isDeleting,
     isSelecting,
     selectionBox,
     
     // 方法
-    setAllImages,
-    toggleImageSelection,
+    setAllItems,
+    toggleSelection,
     clearSelection,
-    isImageSelected,
-    batchDeleteImages,
+    isSelected,
+    batchDelete,
     handleMouseDown,
   };
 };

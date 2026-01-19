@@ -23,6 +23,10 @@ const router = createBrowserRouter([
         lazy: () => import('../pages/MainPage').then(module => ({ element: <module.default /> })),
       },
       {
+        path: 'videos',
+        lazy: () => import('../pages/VideoPage').then(module => ({ element: <module.default /> })),
+      },
+      {
         path: 'tokens',
         lazy: () => import('../pages/LinkTokenPage').then(module => ({ element: <module.default /> })),
       },

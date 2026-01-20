@@ -165,9 +165,10 @@ export const useImagePreview = ({
             {urlIsVideo ? (
               <video
                 src={previewUrl}
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                style={{ maxWidth: '90%', maxHeight: '80vh', objectFit: 'contain', pointerEvents: 'auto' }}
                 controls
                 autoPlay
+                preload="metadata"
                 onError={(e) => console.error('Video loading error:', e, 'URL:', previewUrl)}
                 onLoadedMetadata={(e) => console.log('Video metadata loaded:', e.currentTarget.duration)}
               />

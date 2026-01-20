@@ -21,7 +21,7 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title="图床API",
     description="前后端分离的图床系统API",
-    version="1.0.0",
+    version="1.1.3",
     docs_url="/docs",
     redoc_url="/redoc"
 )

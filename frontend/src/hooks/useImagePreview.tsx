@@ -134,12 +134,12 @@ export const useImagePreview = ({
           justifyContent: 'center', 
           alignItems: 'center', 
           cursor: urlIsVideo ? 'default' : (isDragging ? 'grabbing' : (zoom > 1 ? 'grab' : 'zoom-out')),
-          userSelect: 'none'
+          userSelect: urlIsVideo ? 'auto' : 'none'
         }} 
         onClick={closePreview}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onMouseMove={urlIsVideo ? undefined : handleMouseMove}
+        onMouseUp={urlIsVideo ? undefined : handleMouseUp}
+        onMouseLeave={urlIsVideo ? undefined : handleMouseLeave}
       >
         <div 
           style={{ 
@@ -163,14 +163,24 @@ export const useImagePreview = ({
             onClick={(e) => e.stopPropagation()}
           >
             {urlIsVideo ? (
-              <video
-                src={previewUrl}
-                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                controls
-                autoPlay
-                onError={(e) => console.error('Video loading error:', e, 'URL:', previewUrl)}
-                onLoadedMetadata={(e) => console.log('Video metadata loaded:', e.currentTarget.duration)}
-              />
+              <div style={{ position: 'relative', zIndex: 10, pointerEvents: 'auto' }}>
+                <video
+                  src={previewUrl}
+                  style={{ 
+                    maxWidth: '90%', 
+                    maxHeight: '80vh', 
+                    objectFit: 'contain', 
+                    pointerEvents: 'auto', 
+                    zIndex: 10,
+                    background: 'black'
+                  }}
+                  controls
+                  autoPlay
+                  preload="metadata"
+                  onError={(e) => console.error('Video loading error:', e, 'URL:', previewUrl)}
+                  onLoadedMetadata={(e) => console.log('Video metadata loaded:', e.currentTarget.duration)}
+                />
+              </div>
             ) : (
               <AntImage
                 src={previewUrl}

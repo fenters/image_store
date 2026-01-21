@@ -434,11 +434,15 @@ const UploadComponent: React.FC = () => {
               // 重试逻辑
               while (attempt < MAX_RETRIES && !success) {
                 try {
-                  if (file.size > CHUNK_THRESHOLD) {
-                    // 分片上传逻辑
+                  const isVideo = file.type.includes('video');
+                  if (isVideo) {
+                    // 视频文件无论大小都直接上传
+                    await uploadSmallFile(file, nicname);
+                  } else if (file.size > CHUNK_THRESHOLD) {
+                    // 图片文件大于阈值时分片上传
                     await uploadFileInChunks(file, CHUNK_SIZE, nicname);
                   } else {
-                    // 普通上传逻辑
+                    // 图片文件小于阈值时直接上传
                     await uploadSmallFile(file, nicname);
                   }
                   success = true;

@@ -32,7 +32,7 @@ async def generate_video_cover(video_path: str, cover_path: str) -> bool:
         process = (ffmpeg
          .input(video_path, ss=1)  # 从第1秒开始，避免黑屏
          .filter('scale', settings.VIDEO_COVER_WIDTH, -1)  # 调整封面宽度，保持比例
-         .output(cover_path, vframes=1, format='jpg', q=settings.VIDEO_COVER_QUALITY)  # 调整质量
+         .output(cover_path, vframes=1, q=settings.VIDEO_COVER_QUALITY)  # 调整质量，不指定格式，让FFmpeg根据扩展名自动判断
          .run_async(pipe_stdout=True, pipe_stderr=True))
         
         stdout, stderr = process.communicate()

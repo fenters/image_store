@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     BASE_URL: str = "http://localhost:8000"
     UPLOAD_FOLDER: str = "static"
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_FILE_TYPES: str = "jpg,jpeg,png,gif,webp"
+    MAX_VIDEO_SIZE: int = 500 * 1024 * 1024  # 500MB
+    ALLOWED_FILE_TYPES: str = "jpg,jpeg,png,gif,webp,mp4,avi,mov,wmv,flv,webm,mkv"
     
     @property
     def allowed_file_types_list(self) -> list[str]:
@@ -32,6 +33,10 @@ class Settings(BaseSettings):
     CHUNK_SIZE: int = 2 * 1024 * 1024  # 2MB per chunk
     TEMP_UPLOAD_FOLDER: str = "temp"
     CHUNK_EXPIRE_TIME: int = 24 * 3600  # 24 hours in seconds
+    
+    # 视频封面配置
+    VIDEO_COVER_WIDTH: int = 640  # 视频封面宽度
+    VIDEO_COVER_QUALITY: int = 2  # 视频封面质量，1-31，值越小质量越高
     
     class Config:
         env_file = ".env"
